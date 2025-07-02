@@ -12,7 +12,7 @@ A beautiful, fast, and functional web app that uses the Hugging Face API to answ
 - AI-generated responses using Hugging Face
 - Clean and animated UI with HTML + CSS
 - Works on desktop and mobile
-- Hosted on [Vercel]
+- Hosted on [render]
 
 ---
 
@@ -67,6 +67,9 @@ No need to manage ML infrastructure
 🖼️ Screenshots
 
 ![image](https://github.com/user-attachments/assets/32550283-a523-4f3f-9dd2-bfa5a4340fb2)
+
+🌐 Hosted Link --> 
+https://llm-ytq9.onrender.com/
 
  Author
 Devanshu Jain
