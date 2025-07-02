@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Search - Discover Anything</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: white;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #fff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            margin-bottom: 40px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 60px 18px 25px;
+            font-size: 1.1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 5px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(-50%);
+        }
+
+        .search-icon {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: none;
+            margin-bottom: 40px;
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-content {
+            line-height: 1.8;
+            font-size: 1rem;
+            color: #444;
+        }
+
+        .results-content h1, .results-content h2, .results-content h3 {
+            color: #333;
+            margin: 20px 0 10px;
+        }
+
+        .results-content p {
+            margin-bottom: 15px;
+        }
+
+        .results-content ul, .results-content ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .results-content li {
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+            display: none;
+        }
+
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .example-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .example-tag:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .search-section, .results-section {
+                padding: 25px;
+                margin: 0 10px 30px;
+            }
+            
+            .search-input {
+                padding: 15px 50px 15px 20px;
+                font-size: 1rem;
+            }
+            
+            .examples {
+                gap: 10px;
+            }
+            
+            .example-tag {
+                font-size: 0.9rem;
+                padding: 6px 12px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">AI Search</h1>
+            <p class="tagline">Discover anything with the power of AI</p>
+        </header>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Ask me anything... What would you like to know?"
+                    id="searchInput"
+                >
+                <button class="search-btn" id="searchBtn">
+                    <svg class="search-icon" viewBox="0 0 24 24">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="examples">
+                <span class="example-tag" onclick="searchExample('Explain quantum computing')">Explain quantum computing</span>
+                <span class="example-tag" onclick="searchExample('History of artificial intelligence')">History of AI</span>
+                <span class="example-tag" onclick="searchExample('How does photosynthesis work?')">How photosynthesis works</span>
+                <span class="example-tag" onclick="searchExample('Latest space discoveries')">Space discoveries</span>
+                <span class="example-tag" onclick="searchExample('Climate change solutions')">Climate solutions</span>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>AI is thinking... Please wait</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="results-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                AI Response
+            </div>
+            <div class="results-content" id="resultsContent"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Powered by Advanced AI Technology • Search Responsibly</p>
+    </footer>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContent = document.getElementById('resultsContent');
+
+        // Event listeners
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        // Auto-focus on search input
+        searchInput.focus();
+
+        function searchExample(query) {
+            searchInput.value = query;
+            performSearch();
+        }
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+
+            // Show loading state
+            showLoading(true);
+            hideError();
+            hideResults();
+            searchBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Search failed');
+                }
+
+                showResults(data.response, query);
+            } catch (error) {
+                console.error('Search error:', error);
+                showError('Sorry, something went wrong. Please try again.');
+            } finally {
+                showLoading(false);
+                searchBtn.disabled = false;
+            }
+        }
+
+        function showLoading(show) {
+            loading.style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            errorMessage.classList.add('fade-in');
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        function showResults(response, query) {
+            resultsContent.innerHTML = formatResponse(response);
+            resultsSection.style.display = 'block';
+            resultsSection.classList.add('fade-in');
+            
+            // Smooth scroll to results
+            setTimeout(() => {
+                resultsSection.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 100);
+        }
+
+        function hideResults() {
+            resultsSection.style.display = 'none';
+        }
+
+        function formatResponse(response) {
+            // Convert markdown-like formatting to HTML
+            let formatted = response
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code style="background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-family: monospace;">$1</code>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+
+            // Handle numbered lists
+            formatted = formatted.replace(/(\d+\.\s+)(.*?)(?=\d+\.\s+|$)/g, '<li>$2</li>');
+            if (formatted.includes('<li>')) {
+                formatted = '<ol>' + formatted + '</ol>';
+                formatted = formatted.replace(/<\/ol><ol>/g, '');
+            }
+
+            // Handle bullet points
+            formatted = formatted.replace(/•\s+(.*?)(?=•\s+|$)/g, '<li>$1</li>');
+            if (formatted.includes('<li>') && !formatted.includes('<ol>')) {
+                formatted = '<ul>' + formatted + '</ul>';
+                formatted = formatted.replace(/<\/ul><ul>/g, '');
+            }
+
+            // Wrap in paragraph tags if not already formatted
+            if (!formatted.includes('<p>') && !formatted.includes('<ol>') && !formatted.includes('<ul>')) {
+                formatted = '<p>' + formatted + '</p>';
+            }
+
+            return formatted;
+        }
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate search input on focus
+            searchInput.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+
+            searchInput.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
